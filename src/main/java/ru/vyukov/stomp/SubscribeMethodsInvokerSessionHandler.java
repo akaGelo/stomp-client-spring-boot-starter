@@ -29,6 +29,9 @@ public class SubscribeMethodsInvokerSessionHandler extends StompSessionHandlerAd
         log.info("New session: {}", session.getSessionId());
 
         endpointRegistry.getAllDestination().forEach((destination) -> subscribe(destination, session));
+        if (endpointRegistry.getAllDestination().isEmpty()) {
+            log.warn("No @Subscribe methods");
+        }
     }
 
     private void subscribe(String destination, StompSession session) {

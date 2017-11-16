@@ -17,7 +17,7 @@ import static org.springframework.util.ReflectionUtils.getAllDeclaredMethods;
  * @author Vyukov Oleg
  */
 @Slf4j
-public class StompListenerAnnotationBeanPostProcessor
+public class StompSubscribeAnnotationBeanPostProcessor
         implements BeanPostProcessor, Ordered, BeanFactoryAware, SmartInitializingSingleton {
 
     private BeanFactory beanFactory;

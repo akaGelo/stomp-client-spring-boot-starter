@@ -2,6 +2,7 @@ package ru.vyukov.stomp;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.converter.MessageConverter;
@@ -20,7 +21,7 @@ import java.util.concurrent.TimeUnit;
  * Message channel to stomp server. Automatic reconnect
  */
 @Slf4j
-class StompMessageChannel implements MessageChannel {
+class StompMessageChannel implements MessageChannel , SmartInitializingSingleton{
 
 
     private final WebSocketStompClient webSocketStompClient;
@@ -125,5 +126,10 @@ class StompMessageChannel implements MessageChannel {
                 connect();
             }
         };
+    }
+
+    @Override
+    public void afterSingletonsInstantiated() {
+        start();
     }
 }
