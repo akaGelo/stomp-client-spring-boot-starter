@@ -5,27 +5,26 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.converter.MessageConverter;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.stomp.StompSession;
-import org.springframework.messaging.simp.stomp.StompSessionHandler;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.socket.WebSocketHttpHeaders;
-import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
+import static org.springframework.messaging.simp.SimpMessageHeaderAccessor.DESTINATION_HEADER;
+
 /**
  * Message channel to stomp server. Automatic reconnect
  */
 @Slf4j
-class StompMessageChannel implements MessageChannel , SmartInitializingSingleton{
+class StompMessageChannel implements MessageChannel, SmartInitializingSingleton {
 
 
     private final WebSocketStompClient webSocketStompClient;
-
 
     private final TaskScheduler taskScheduler;
 
@@ -36,13 +35,10 @@ class StompMessageChannel implements MessageChannel , SmartInitializingSingleton
     private volatile Future<?> reconnectTaskFuture;
 
 
-    public StompMessageChannel(WebSocketClient webSocketClient, TaskScheduler taskScheduler,
-                               MessageConverter messageConverter, ConnectConfig connectConfig) {
-        this.taskScheduler = taskScheduler;
-        webSocketStompClient = new WebSocketStompClient(webSocketClient);
-        webSocketStompClient.setMessageConverter(messageConverter);
-        webSocketStompClient.setTaskScheduler(taskScheduler);
+    public StompMessageChannel(WebSocketStompClient webSocketStompClient, ConnectConfig connectConfig, TaskScheduler taskScheduler) {
+        this.webSocketStompClient = webSocketStompClient;
         this.connectConfig = connectConfig;
+        this.taskScheduler = taskScheduler;
     }
 
 
@@ -63,7 +59,7 @@ class StompMessageChannel implements MessageChannel , SmartInitializingSingleton
     }
 
 
-    private void connect() {
+    protected void connect() {
         if (null != sessionFuture) {
             sessionFuture.cancel(true);
         }
@@ -81,8 +77,8 @@ class StompMessageChannel implements MessageChannel , SmartInitializingSingleton
     @Override
     public boolean send(Message<?> message, long timeout) {
         try {
-            StompSession stompSession = getSessionWithDefaultTimeout();
-            String destination = (String) message.getHeaders().get("simpDestination");
+            StompSession stompSession = getSessionWithTimeout(timeout);
+            String destination = (String) message.getHeaders().get(DESTINATION_HEADER);
             Object payload = message.getPayload();
             stompSession.send(destination, payload);
             return true;
@@ -98,9 +94,13 @@ class StompMessageChannel implements MessageChannel , SmartInitializingSingleton
         return sessionFuture;
     }
 
-    synchronized private StompSession getSessionWithDefaultTimeout() throws Exception {
+    private StompSession getSessionWithDefaultTimeout() throws Exception {
+        return getSessionWithTimeout(connectConfig.getReconnectDelay());
+    }
+
+    synchronized private StompSession getSessionWithTimeout(long timeout) throws Exception {
         try {
-            return getSessionFuture().get(connectConfig.getReconnectDelay(), TimeUnit.MILLISECONDS);
+            return getSessionFuture().get(timeout, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             throw e;
         } catch (Exception e) {
@@ -110,7 +110,7 @@ class StompMessageChannel implements MessageChannel , SmartInitializingSingleton
     }
 
 
-    private Runnable createReconnectTask() {
+    protected Runnable createReconnectTask() {
         return () -> {
             try {
                 StompSession stompSession = getSessionWithDefaultTimeout();
@@ -118,7 +118,6 @@ class StompMessageChannel implements MessageChannel , SmartInitializingSingleton
                     throw new Exception("Session not connected");
                 }
             } catch (InterruptedException e) {
-                ;
                 log.info("Interrupted", e);
             } catch (Exception e) {
                 log.info("Session problem", e);

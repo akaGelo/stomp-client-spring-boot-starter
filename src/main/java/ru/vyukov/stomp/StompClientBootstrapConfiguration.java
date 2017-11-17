@@ -1,6 +1,7 @@
 package ru.vyukov.stomp;
 
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,14 +15,13 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
+import org.springframework.web.socket.messaging.WebSocketStompClient;
 
 import static ru.vyukov.stomp.StopmpClientConfigUtils.STOMP_SUBSCRIBE_ANNOTATION_BEAN_POST_PROCESSOR_BEAN_NAME;
 import static ru.vyukov.stomp.StopmpClientConfigUtils.STOMP_SUBSCRIBE_ENDPOINT_REGISTRY_BEAN_NAME;
 
 /**
- * Extends for use
- *
- * @author gelo
+ * @author Oleg Vyukov
  */
 @Configuration
 public class StompClientBootstrapConfiguration {
@@ -40,9 +40,9 @@ public class StompClientBootstrapConfiguration {
 
 
     @Bean
-    @ConfigurationProperties("controller")
-    public WebSocketStompClientProperties wsConfig() {
-        return new WebSocketStompClientProperties();
+    @ConfigurationProperties("stomp.client")
+    public StompClientProperties wsConfig() {
+        return new StompClientProperties();
     }
 
     @Bean
@@ -53,13 +53,22 @@ public class StompClientBootstrapConfiguration {
     }
 
 
+    @Bean
+    @ConditionalOnMissingBean
+    WebSocketStompClient webSocketStompClient() {
+        WebSocketStompClient webSocketStompClient = new WebSocketStompClient(new StandardWebSocketClient());
+        webSocketStompClient.setTaskScheduler(taskScheduler());
+        webSocketStompClient.setMessageConverter(messageConverter());
+        return webSocketStompClient;
+    }
+
+
     @Bean(destroyMethod = "stop")
     @DependsOn(STOMP_SUBSCRIBE_ANNOTATION_BEAN_POST_PROCESSOR_BEAN_NAME)
     StompMessageChannel stompMessageChannel() {
-        WebSocketClient webSocketClient = new StandardWebSocketClient();
 
         ConnectConfig config = new ConnectConfig(wsConfig(), sessionHandler());
-        StompMessageChannel stompMessageChannel = new StompMessageChannel(webSocketClient, taskScheduler(), messageConverter(), config);
+        StompMessageChannel stompMessageChannel = new StompMessageChannel(webSocketStompClient(), config, taskScheduler());
 
         return stompMessageChannel;
     }

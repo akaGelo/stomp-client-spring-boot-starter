@@ -14,6 +14,8 @@ import java.lang.reflect.Method;
 import static org.springframework.util.ReflectionUtils.getAllDeclaredMethods;
 
 /**
+ * Find all @{@link Subscribe} methods and add her in {@link StompSubscribeEndpointRegistrar}
+ *
  * @author Vyukov Oleg
  */
 @Slf4j
@@ -57,7 +59,7 @@ public class StompSubscribeAnnotationBeanPostProcessor
 
     private void registerSubscribeMethod(String mapping, Method method, Class<?> targetClass, Object bean) {
         log.info("Subscribe " + mapping + " " + method);
-        registrar.register(mapping, method, targetClass, bean);
+        registrar.register(method, targetClass, bean);
     }
 
     @Override

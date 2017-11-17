@@ -1,7 +1,6 @@
 package ru.vyukov.stomp;
 
 import lombok.Getter;
-import lombok.Value;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -13,26 +12,27 @@ import java.lang.reflect.Type;
  * @author gelo
  */
 @Getter
-public class SubscribeMethodInstance {
+class SubscribeMethodInstance {
 
     private final String destination;
 
     private final Method method;
 
     private final Object beanInstance;
-    private Type argType;
+
+    private final Type argType;
 
 
-    public SubscribeMethodInstance(String destination, Method method, Object beanInstance) {
-        this.destination = destination;
+    public SubscribeMethodInstance(Method method, Object beanInstance) {
+        this.destination = extractDestination(method);
         this.method = method;
         this.beanInstance = beanInstance;
+        this.argType = extractArgType(method);
+    }
 
-        Class<?>[] types = method.getParameterTypes();
-        if (1 != types.length) {
-            throw new IllegalArgumentException("method " + method + " must have  only one argument");
-        }
-        this.argType = types[0];
+
+    private String extractDestination(Method method) {
+        return method.getAnnotation(Subscribe.class).value();
     }
 
     public void invoke(Object arg) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -41,5 +41,13 @@ public class SubscribeMethodInstance {
 
     public Type getArgType() {
         return argType;
+    }
+
+    private Type extractArgType(Method method) {
+        Class<?>[] types = method.getParameterTypes();
+        if (1 != types.length) {
+            throw new IllegalArgumentException("method " + method + " must have  only one argument");
+        }
+        return types[0];
     }
 }

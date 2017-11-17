@@ -6,6 +6,11 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Store @Subscribe methods for further registration in @Bean {@link SubscribeEndpointRegistry}
+ *
+ * @author Oleg Vyukov
+ */
 class StompSubscribeEndpointRegistrar implements InitializingBean {
 
     private SubscribeEndpointRegistry registry;
@@ -22,8 +27,8 @@ class StompSubscribeEndpointRegistrar implements InitializingBean {
         this.registry = registry;
     }
 
-    public void register(String destination, Method method, Class<?> targetClass, Object bean) {
-        SubscribeMethodInstance subscribeMethodInstance = new SubscribeMethodInstance(destination, method, bean);
+    public void register( Method method, Class<?> targetClass, Object bean) {
+        SubscribeMethodInstance subscribeMethodInstance = new SubscribeMethodInstance( method, bean);
         methodInstances.add(subscribeMethodInstance);
     }
 }

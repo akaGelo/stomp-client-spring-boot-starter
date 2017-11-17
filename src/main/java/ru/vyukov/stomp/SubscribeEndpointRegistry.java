@@ -1,6 +1,5 @@
 package ru.vyukov.stomp;
 
-import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Set;
@@ -21,6 +20,11 @@ class SubscribeEndpointRegistry {
         subscribeMethodsInstances.put(destination, subscribeMethodInstance);
     }
 
+    /**
+     * @param destination
+     * @return
+     * @throws NullPointerException if no @Subscribe method on destination
+     */
     @NotNull
     public SubscribeMethodInstance getMethod(String destination) {
         SubscribeMethodInstance instance = subscribeMethodsInstances.get(destination);

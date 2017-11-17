@@ -9,9 +9,9 @@ import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
 import java.lang.reflect.Type;
 
 /**
- * This session handler invoke @Subscribe methods on receive messages
+ * This session handler invoke @Subscribe methods by destination on receive messages
  *
- * @author gelo
+ * @author Oleg Vyukov
  */
 @Slf4j
 public class SubscribeMethodsInvokerSessionHandler extends StompSessionHandlerAdapter {
@@ -64,7 +64,7 @@ public class SubscribeMethodsInvokerSessionHandler extends StompSessionHandlerAd
         try {
             subscribeMethodInstance.invoke(payload);
         } catch (Exception e) {
-            log.error("Invoke subscribe method exception", e);
+            log.error("Invoke subscribe destination=[" + destination + "] method exception. See @Subscribe", e);
         }
     }
 }

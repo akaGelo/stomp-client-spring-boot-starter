@@ -1,6 +1,9 @@
 package ru.vyukov.stomp;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 
 import javax.annotation.Nullable;
@@ -11,23 +14,29 @@ import static java.util.Base64.getEncoder;
 
 
 @Data
-public class WebSocketStompClientProperties {
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class StompClientProperties {
 
 
     private long reconnectDelay = 5_000;
 
     /**
-     * ws://127.0.0.1:8080/endpoint
+     * example ws://127.0.0.1:8080/endpoint
      */
     @NotNull
     private String url;
 
 
+    /**
+     * specified if necessary
+     */
     @Valid
     private BasicAuth basicAuth = new BasicAuth();
 
     @Data
-    class BasicAuth {
+    static  class BasicAuth {
 
         @Nullable
         private String username;
