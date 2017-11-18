@@ -10,9 +10,16 @@ import static org.junit.Assert.*;
 public class StompMessageChannelNotStartedTest extends SuperStompMessageChannelTest {
 
 
-    @Test(expected = IllegalStateException.class)
+    @Test()
     public void start() throws Exception {
-        underTest.send(null);
+        try {
+            underTest.send(null);
+            fail("expected IllegalStateException");
+        } catch (Exception e) {
+            if (!(e.getCause() instanceof IllegalStateException)) {
+                fail("expected IllegalStateException");
+            }
+        }
     }
 
 }

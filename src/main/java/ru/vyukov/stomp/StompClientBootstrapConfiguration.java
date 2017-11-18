@@ -13,12 +13,11 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompSessionHandler;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
-import org.springframework.web.socket.client.WebSocketClient;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
-import static ru.vyukov.stomp.StopmpClientConfigUtils.STOMP_SUBSCRIBE_ANNOTATION_BEAN_POST_PROCESSOR_BEAN_NAME;
-import static ru.vyukov.stomp.StopmpClientConfigUtils.STOMP_SUBSCRIBE_ENDPOINT_REGISTRY_BEAN_NAME;
+import static ru.vyukov.stomp.StompClientConfigUtils.STOMP_SUBSCRIBE_ANNOTATION_BEAN_POST_PROCESSOR_BEAN_NAME;
+import static ru.vyukov.stomp.StompClientConfigUtils.STOMP_SUBSCRIBE_ENDPOINT_REGISTRY_BEAN_NAME;
 
 /**
  * @author Oleg Vyukov

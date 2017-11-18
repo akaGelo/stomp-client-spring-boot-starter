@@ -14,8 +14,6 @@ import java.lang.annotation.*;
  * # if necessary
  * #stomp.client.basic-auth.username=agent1
  * #stomp.client.basic-auth.password=cc711bd6-7373-4f89-ba5b-3f4cfd694d36
- *
- *
  * </pre>
  */
 @Target(ElementType.TYPE)

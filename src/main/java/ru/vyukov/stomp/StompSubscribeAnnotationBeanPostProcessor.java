@@ -33,7 +33,7 @@ public class StompSubscribeAnnotationBeanPostProcessor
 
     @Override
     public void afterSingletonsInstantiated() {
-        SubscribeEndpointRegistry registry = beanFactory.getBean(StopmpClientConfigUtils.STOMP_SUBSCRIBE_ENDPOINT_REGISTRY_BEAN_NAME, SubscribeEndpointRegistry.class);
+        SubscribeEndpointRegistry registry = beanFactory.getBean(StompClientConfigUtils.STOMP_SUBSCRIBE_ENDPOINT_REGISTRY_BEAN_NAME, SubscribeEndpointRegistry.class);
         registrar.setRegistry(registry);
         registrar.afterPropertiesSet();
     }

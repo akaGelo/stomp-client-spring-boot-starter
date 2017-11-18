@@ -1,6 +1,6 @@
 package ru.vyukov.stomp;
 
-abstract class StopmpClientConfigUtils {
+abstract class StompClientConfigUtils {
 
 
     public static final String STOMP_SUBSCRIBE_ANNOTATION_BEAN_POST_PROCESSOR_BEAN_NAME = "defaultStompSubscribeAnnotationBeanPostProcessor";

@@ -34,12 +34,19 @@ import static org.mockito.Mockito.*;
 /**
  * @author Oleg Vyukov
  */
-public class StompMessageChannelTest extends  SuperStompMessageChannelTest{
+public class StompMessageChannelTest extends SuperStompMessageChannelTest {
 
+
+    private ListenableFuture<StompSession> stompSessionFuture;
+
+    private ScheduledFuture reconnectFuture;
 
 
     @Before
     public void setUp() throws Exception {
+        stompSessionFuture = mock(ListenableFuture.class);
+        reconnectFuture = mock(ScheduledFuture.class);
+
         when(webSocketStompClient.connect(anyString(), any(WebSocketHttpHeaders.class), any(StompSessionHandler.class))).thenReturn(stompSessionFuture);
         when(taskScheduler.scheduleWithFixedDelay(any(), anyLong())).thenReturn(reconnectFuture);
 

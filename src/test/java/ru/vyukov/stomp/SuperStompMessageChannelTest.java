@@ -19,7 +19,7 @@ import static ru.vyukov.stomp.StompMessageChannelTest.testProps;
  * @author Oleg Vyukov
  */
 @RunWith(MockitoJUnitRunner.class)
-public class SuperStompMessageChannelTest {
+abstract public class SuperStompMessageChannelTest {
 
 
     @Mock
@@ -28,8 +28,6 @@ public class SuperStompMessageChannelTest {
     @Mock
     protected TaskScheduler taskScheduler;
 
-    @Mock
-    protected ListenableFuture<StompSession> stompSessionFuture;
 
     @Mock
     protected StompSessionHandler stompSessionHandler;
@@ -37,9 +35,6 @@ public class SuperStompMessageChannelTest {
     @Spy
     protected ConnectConfig connectConfig = new ConnectConfig(testProps(), stompSessionHandler);
 
-
-    @Mock
-    protected ScheduledFuture reconnectFuture;
 
     @InjectMocks
     protected StompMessageChannel underTest;
