@@ -26,13 +26,9 @@ import static org.springframework.test.annotation.DirtiesContext.MethodMode.BEFO
 /**
  * @author Oleg Vyukov
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {EnableStompClientConfig.class, ValidationAutoConfiguration.class}, initializers = ConfigFileApplicationContextInitializer.class)
-@DirtiesContext(methodMode = BEFORE_METHOD)
-@Configuration
-@EnableConfigurationProperties
+
 @TestPropertySource("classpath:test.properties")
-public class StompClientBootstrapConfigurationTest {
+public class StompClientBootstrapConfigurationTest extends AbstractConfigurationTest {
 
     public static final Hello HELLO_MESSAGE = new Hello("gelo");
     private static final byte[] SERIALIZED_HELLO_MESSAGE = new byte[]{123, 34, 110, 97, 109, 101, 34, 58, 34, 103, 101, 108, 111, 34, 125};

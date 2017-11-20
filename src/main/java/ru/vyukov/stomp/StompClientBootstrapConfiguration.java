@@ -2,6 +2,7 @@ package ru.vyukov.stomp;
 
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +24,7 @@ import static ru.vyukov.stomp.StompClientConfigUtils.STOMP_SUBSCRIBE_ENDPOINT_RE
  * @author Oleg Vyukov
  */
 @Configuration
+@ConditionalOnProperty(value = "stomp.client.enabled", matchIfMissing = true)
 public class StompClientBootstrapConfiguration {
 
 

@@ -19,6 +19,11 @@ import static java.util.Base64.getEncoder;
 @NoArgsConstructor
 public class StompClientProperties {
 
+    /**
+     * See {@link StompClientBootstrapConfiguration} @ConditionalOnProperty
+     */
+    private boolean enabled = true;
+
 
     private long reconnectDelay = 5_000;
 
@@ -36,7 +41,7 @@ public class StompClientProperties {
     private BasicAuth basicAuth = new BasicAuth();
 
     @Data
-    static  class BasicAuth {
+    static class BasicAuth {
 
         @Nullable
         private String username;

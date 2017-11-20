@@ -1,5 +1,6 @@
 package ru.vyukov.stomp.configuration;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -55,6 +56,7 @@ public class EnableStompClientConfig {
 
 
     @Bean
+    @ConditionalOnBean(SimpMessagingTemplate.class)
     TestSubscriber testSubscriber(SimpMessagingTemplate simpMessagingTemplate) {
         return new TestSubscriber(simpMessagingTemplate);
     }
