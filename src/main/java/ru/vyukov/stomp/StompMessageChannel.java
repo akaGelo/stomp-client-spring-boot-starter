@@ -5,10 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
@@ -16,6 +16,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static org.springframework.messaging.simp.SimpMessageHeaderAccessor.DESTINATION_HEADER;
+import static org.springframework.messaging.simp.SimpMessageHeaderAccessor.create;
 
 /**
  * Message channel to stomp server. Automatic reconnect
@@ -32,8 +33,13 @@ class StompMessageChannel implements MessageChannel, SmartInitializingSingleton 
 
     private final ConnectConfig connectConfig;
 
+
     private volatile Future<?> reconnectTaskFuture;
 
+    /**
+     * flag of connect
+     */
+    private volatile boolean connected;
 
     public StompMessageChannel(WebSocketStompClient webSocketStompClient, ConnectConfig connectConfig, TaskScheduler taskScheduler) {
         this.webSocketStompClient = webSocketStompClient;
@@ -58,14 +64,22 @@ class StompMessageChannel implements MessageChannel, SmartInitializingSingleton 
         webSocketStompClient.stop();
     }
 
+    public boolean isConnected() {
+        return connected;
+    }
+
 
     protected void connect() {
         if (null != sessionFuture) {
-            sessionFuture.cancel(true);
+            destroySessionFuture(sessionFuture);
         }
         WebSocketHttpHeaders handshakeHeaders = connectConfig.getHandshakeHeaders();
 
-        sessionFuture = webSocketStompClient.connect(connectConfig.getUrl(), handshakeHeaders, connectConfig.getSessionHandler());
+        ListenableFuture<StompSession> newSessionFuture = webSocketStompClient.connect(connectConfig.getUrl(), handshakeHeaders, connectConfig.getSessionHandler());
+        newSessionFuture.addCallback(createSetConnectedCallback(newSessionFuture));
+
+        this.sessionFuture = newSessionFuture;
+
     }
 
 
@@ -104,9 +118,14 @@ class StompMessageChannel implements MessageChannel, SmartInitializingSingleton 
         } catch (InterruptedException e) {
             throw e;
         } catch (Exception e) {
-            getSessionFuture().cancel(true);
+            destroySessionFuture(getSessionFuture());
             throw e;
         }
+    }
+
+    private void destroySessionFuture(ListenableFuture<StompSession> sessionFuture) {
+        sessionFuture.addCallback(new DisconnectCallback());
+        sessionFuture.cancel(true);
     }
 
 
@@ -117,6 +136,7 @@ class StompMessageChannel implements MessageChannel, SmartInitializingSingleton 
                 if (!stompSession.isConnected()) {
                     throw new Exception("Session not connected");
                 }
+                connected = true;
             } catch (InterruptedException e) {
                 log.info("Interrupted", e);
             } catch (Exception e) {
@@ -131,4 +151,43 @@ class StompMessageChannel implements MessageChannel, SmartInitializingSingleton 
     public void afterSingletonsInstantiated() {
         start();
     }
+
+
+    /**
+     * change connection only if localSessionFuture  == currentSessionFuture
+     *
+     * @param localSessionFuture
+     * @return
+     */
+    private ListenableFutureCallback<? super StompSession> createSetConnectedCallback(ListenableFuture<StompSession> localSessionFuture) {
+        return new ListenableFutureCallback<StompSession>() {
+            @Override
+            public void onFailure(Throwable ex) {
+                if (isActualSession()) {
+                    connected = false;
+                    log.info("Connected from session " + localSessionFuture);
+                } else {
+                    log.debug("Ignore disconnect from obsolete session" + localSessionFuture);
+                }
+            }
+
+            @Override
+            public void onSuccess(StompSession result) {
+                if (isActualSession()) {
+                    connected = true;
+                    log.info("Connected from session " + localSessionFuture);
+                } else {
+                    log.debug("Ignore connected from obsolete session" + localSessionFuture);
+                }
+            }
+
+            /**
+             * @return true if session of callback == last session
+             */
+            private boolean isActualSession() {
+                return localSessionFuture == getSessionFuture();
+            }
+        };
+    }
+
 }

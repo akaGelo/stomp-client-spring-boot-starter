@@ -12,7 +12,7 @@ public class StompClientPropertiesTest {
     @Test
     public void getHeadersNoAuth() throws Exception {
         StompClientProperties stompClientProperties = new StompClientProperties();
-        WebSocketHttpHeaders headers = stompClientProperties.getHeaders();
+        WebSocketHttpHeaders headers = stompClientProperties.headers();
         assertFalse(headers.containsKey("Authorization"));
         assertEquals(0, headers.size());
     }
@@ -25,7 +25,7 @@ public class StompClientPropertiesTest {
         basicAuth.setPassword("qwerty");
         basicAuth.setUsername("admin");
 
-        WebSocketHttpHeaders headers = stompClientProperties.getHeaders();
+        WebSocketHttpHeaders headers = stompClientProperties.headers();
         assertTrue(headers.containsKey("Authorization"));
         assertEquals("Basic YWRtaW46cXdlcnR5", headers.getFirst("Authorization"));
     }

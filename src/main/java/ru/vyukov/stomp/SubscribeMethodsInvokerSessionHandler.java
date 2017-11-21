@@ -1,10 +1,13 @@
 package ru.vyukov.stomp;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
 import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
+import ru.vyukov.stomp.events.StompAfterConnectedEvent;
+import ru.vyukov.stomp.events.StompTransportErrorEvent;
 
 import java.lang.reflect.Type;
 
@@ -19,20 +22,25 @@ public class SubscribeMethodsInvokerSessionHandler extends StompSessionHandlerAd
 
     private final SubscribeEndpointRegistry endpointRegistry;
 
-    public SubscribeMethodsInvokerSessionHandler(SubscribeEndpointRegistry endpointRegistry) {
+    private ApplicationEventPublisher eventPublisher;
+
+    public SubscribeMethodsInvokerSessionHandler(SubscribeEndpointRegistry endpointRegistry, ApplicationEventPublisher eventPublisher) {
         this.endpointRegistry = endpointRegistry;
+        this.eventPublisher = eventPublisher;
     }
 
 
     @Override
     public void afterConnected(StompSession session, StompHeaders connectedHeaders) {
         log.info("New session: {}", session.getSessionId());
+        eventPublisher.publishEvent(new StompAfterConnectedEvent(session, connectedHeaders));
 
         endpointRegistry.getAllDestination().forEach((destination) -> subscribe(destination, session));
         if (endpointRegistry.getAllDestination().isEmpty()) {
             log.warn("No @Subscribe methods");
         }
     }
+
 
     private void subscribe(String destination, StompSession session) {
         session.subscribe(destination, this);
@@ -48,6 +56,7 @@ public class SubscribeMethodsInvokerSessionHandler extends StompSessionHandlerAd
     @Override
     public void handleTransportError(StompSession session, Throwable exception) {
         log.error("Stomp transport error", exception);
+        eventPublisher.publishEvent(new StompTransportErrorEvent(session, exception));
     }
 
     @Override

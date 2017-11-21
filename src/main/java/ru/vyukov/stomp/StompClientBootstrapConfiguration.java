@@ -1,9 +1,13 @@
 package ru.vyukov.stomp;
 
+import com.fasterxml.jackson.databind.Module;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -17,6 +21,8 @@ import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
+import java.util.List;
+
 import static ru.vyukov.stomp.StompClientConfigUtils.STOMP_SUBSCRIBE_ANNOTATION_BEAN_POST_PROCESSOR_BEAN_NAME;
 import static ru.vyukov.stomp.StompClientConfigUtils.STOMP_SUBSCRIBE_ENDPOINT_REGISTRY_BEAN_NAME;
 
@@ -26,6 +32,10 @@ import static ru.vyukov.stomp.StompClientConfigUtils.STOMP_SUBSCRIBE_ENDPOINT_RE
 @Configuration
 @ConditionalOnProperty(value = "stomp.client.enabled", matchIfMissing = true)
 public class StompClientBootstrapConfiguration {
+
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
 
     @Bean(STOMP_SUBSCRIBE_ANNOTATION_BEAN_POST_PROCESSOR_BEAN_NAME)
@@ -76,7 +86,7 @@ public class StompClientBootstrapConfiguration {
 
     @Bean
     StompSessionHandler sessionHandler() {
-        StompSessionHandler sessionHandler = new SubscribeMethodsInvokerSessionHandler(subscribeEndpointRegistry());
+        StompSessionHandler sessionHandler = new SubscribeMethodsInvokerSessionHandler(subscribeEndpointRegistry(), eventPublisher);
         return sessionHandler;
     }
 
@@ -85,9 +95,17 @@ public class StompClientBootstrapConfiguration {
         return new ConcurrentTaskScheduler();
     }
 
+
+
+
     @Bean
+    @ConditionalOnMissingBean
     MessageConverter messageConverter() {
         MappingJackson2MessageConverter mappingJackson2MessageConverter = new MappingJackson2MessageConverter();
+
+        List<Module> modules = ObjectMapper.findModules(getClass().getClassLoader());
+
+        mappingJackson2MessageConverter.getObjectMapper().registerModules(modules);
         return mappingJackson2MessageConverter;
     }
 

@@ -25,7 +25,7 @@ class ConnectConfig {
     ConnectConfig(StompClientProperties properties, StompSessionHandler sessionHandler) {
         this.url = properties.getUrl();
         this.sessionHandler = sessionHandler;
-        this.handshakeHeaders = properties.getHeaders();
+        this.handshakeHeaders = properties.headers();
         this.reconnectDelay = properties.getReconnectDelay();
     }
 }

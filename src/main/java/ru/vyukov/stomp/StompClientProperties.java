@@ -55,7 +55,7 @@ public class StompClientProperties {
     }
 
 
-    public WebSocketHttpHeaders getHeaders() {
+    public WebSocketHttpHeaders headers() {
         WebSocketHttpHeaders headers = new WebSocketHttpHeaders();
         if (basicAuth.isNotEmpty()) {
             String plainCreds = basicAuth.getUsername() + ":" + basicAuth.getPassword();
